@@ -1,0 +1,7 @@
+HSPLcom/example/chat/MainActivity;-><init>()V
+HSPLcom/example/chat/FamilyChatApplication;-><init>()V
+HSPLcom/example/chat/AppContainer;-><init>(Landroid/content/Context;)V
+Lcom/example/chat/navigation/**;
+Lcom/example/chat/conversation/**;
+Lcom/example/chat/message/**;
+Lcom/example/chat/ui/**;

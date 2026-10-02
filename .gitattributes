@@ -1,0 +1,32 @@
+# Family Chat - line ending rules
+#
+# The repo is checked out on Windows (core.autocrlf=true) but part of it runs on
+# the Ubuntu production server. Without these rules git would rewrite the shell
+# scripts to CRLF on checkout and they would fail on the server with
+# "$'\r': command not found". Pin per-platform instead of relying on autocrlf.
+
+* text=auto
+
+# --- Executed on the Linux server: must stay LF ---
+*.sh text eol=lf
+gradlew text eol=lf
+*.conf text eol=lf
+*.example text eol=lf
+.env.example text eol=lf
+
+# --- Executed on Windows: keep CRLF ---
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# --- Binary: never convert ---
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.apk binary
+*.jks binary
+*.keystore binary
+*.zip binary
+*.tar.gz binary
+*.sqlite binary

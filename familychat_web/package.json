@@ -1,0 +1,31 @@
+{
+  "name": "family-chat",
+  "version": "3.1.0",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20.0.0 <21"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "check": "node scripts/check-syntax.js && node scripts/check-manage-script.js",
+    "test:auth": "node scripts/auth-smoke-test.js",
+    "test:security": "node scripts/security-smoke-test.js",
+    "test:architecture": "node scripts/architecture-smoke-test.js",
+    "test:blog": "node scripts/blog-smoke-test.js",
+    "test": "npm run check && npm run test:architecture && npm run test:security && npm run test:auth && npm run test:blog"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "Self-hosted Family Chat server",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^12.6.2",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.0.2",
+    "web-push": "^3.6.7",
+    "ws": "^8.19.0"
+  }
+}

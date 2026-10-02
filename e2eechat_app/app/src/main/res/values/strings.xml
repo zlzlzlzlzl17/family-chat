@@ -1,4 +1,0 @@
-﻿<resources>
-    <string name="app_name">E2EE Chat</string>
-    <string name="default_notification_channel_id">e2ee_chat_messages</string>
-</resources>

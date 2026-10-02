@@ -1,0 +1,27 @@
+# Copy to /etc/systemd/system/family-chat.service and adapt all paths.
+# Create user/group familychat and writable runtime subdirectories first.
+# Service structure informed by read-only inspection; root execution is not copied.
+[Unit]
+Description=Family Chat Node.js backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=familychat
+Group=familychat
+WorkingDirectory=/path/to/app/familychat_web
+EnvironmentFile=/path/to/app/.env
+ExecStart=/usr/bin/node /path/to/app/familychat_web/server.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/path/to/app/runtime
+
+[Install]
+WantedBy=multi-user.target

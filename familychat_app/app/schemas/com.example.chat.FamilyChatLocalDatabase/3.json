@@ -1,0 +1,792 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "c090da797290b72a29cc11509c74d40c",
+    "entities": [
+      {
+        "tableName": "local_conversations",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ownerId` TEXT NOT NULL, `conversationId` INTEGER NOT NULL, `summaryBlob` TEXT NOT NULL, `stateBlob` TEXT NOT NULL, `lastConfirmedMessageId` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`ownerId`, `conversationId`))",
+        "fields": [
+          {
+            "fieldPath": "ownerId",
+            "columnName": "ownerId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "conversationId",
+            "columnName": "conversationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "summaryBlob",
+            "columnName": "summaryBlob",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stateBlob",
+            "columnName": "stateBlob",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastConfirmedMessageId",
+            "columnName": "lastConfirmedMessageId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "ownerId",
+            "conversationId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_local_conversations_ownerId_updatedAt",
+            "unique": false,
+            "columnNames": [
+              "ownerId",
+              "updatedAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_local_conversations_ownerId_updatedAt` ON `${TABLE_NAME}` (`ownerId`, `updatedAt`)"
+          }
+        ]
+      },
+      {
+        "tableName": "local_messages",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ownerId` TEXT NOT NULL, `conversationId` INTEGER NOT NULL, `messageId` INTEGER NOT NULL, `clientMessageId` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `expiresAt` INTEGER NOT NULL, `encryptedBlob` TEXT NOT NULL, PRIMARY KEY(`ownerId`, `conversationId`, `messageId`), FOREIGN KEY(`ownerId`, `conversationId`) REFERENCES `local_conversations`(`ownerId`, `conversationId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "ownerId",
+            "columnName": "ownerId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "conversationId",
+            "columnName": "conversationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "messageId",
+            "columnName": "messageId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "clientMessageId",
+            "columnName": "clientMessageId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expiresAt",
+            "columnName": "expiresAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "encryptedBlob",
+            "columnName": "encryptedBlob",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "ownerId",
+            "conversationId",
+            "messageId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_local_messages_ownerId_conversationId",
+            "unique": false,
+            "columnNames": [
+              "ownerId",
+              "conversationId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_local_messages_ownerId_conversationId` ON `${TABLE_NAME}` (`ownerId`, `conversationId`)"
+          },
+          {
+            "name": "index_local_messages_ownerId_conversationId_timestamp",
+            "unique": false,
+            "columnNames": [
+              "ownerId",
+              "conversationId",
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_local_messages_ownerId_conversationId_timestamp` ON `${TABLE_NAME}` (`ownerId`, `conversationId`, `timestamp`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "local_conversations",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "ownerId",
+              "conversationId"
+            ],
+            "referencedColumns": [
+              "ownerId",
+              "conversationId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "local_outbox",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ownerId` TEXT NOT NULL, `localMessageId` INTEGER NOT NULL, `conversationId` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `clientMessageId` TEXT NOT NULL, `attemptCount` INTEGER NOT NULL, `nextAttemptAt` INTEGER NOT NULL, `state` TEXT NOT NULL, `lastError` TEXT NOT NULL, `updatedAt` INTEGER NOT NULL, `encryptedBlob` TEXT NOT NULL, PRIMARY KEY(`ownerId`, `localMessageId`), FOREIGN KEY(`ownerId`, `conversationId`) REFERENCES `local_conversations`(`ownerId`, `conversationId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "ownerId",
+            "columnName": "ownerId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "localMessageId",
+            "columnName": "localMessageId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "conversationId",
+            "columnName": "conversationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "clientMessageId",
+            "columnName": "clientMessageId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attemptCount",
+            "columnName": "attemptCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextAttemptAt",
+            "columnName": "nextAttemptAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastError",
+            "columnName": "lastError",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "encryptedBlob",
+            "columnName": "encryptedBlob",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "ownerId",
+            "localMessageId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_local_outbox_ownerId_conversationId_createdAt",
+            "unique": false,
+            "columnNames": [
+              "ownerId",
+              "conversationId",
+              "createdAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_local_outbox_ownerId_conversationId_createdAt` ON `${TABLE_NAME}` (`ownerId`, `conversationId`, `createdAt`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "local_conversations",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "ownerId",
+              "conversationId"
+            ],
+            "referencedColumns": [
+              "ownerId",
+              "conversationId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "local_drafts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ownerId` TEXT NOT NULL, `conversationId` INTEGER NOT NULL, `encryptedBlob` TEXT NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`ownerId`, `conversationId`), FOREIGN KEY(`ownerId`, `conversationId`) REFERENCES `local_conversations`(`ownerId`, `conversationId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "ownerId",
+            "columnName": "ownerId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "conversationId",
+            "columnName": "conversationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "encryptedBlob",
+            "columnName": "encryptedBlob",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "ownerId",
+            "conversationId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_local_drafts_ownerId_conversationId",
+            "unique": false,
+            "columnNames": [
+              "ownerId",
+              "conversationId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_local_drafts_ownerId_conversationId` ON `${TABLE_NAME}` (`ownerId`, `conversationId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "local_conversations",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "ownerId",
+              "conversationId"
+            ],
+            "referencedColumns": [
+              "ownerId",
+              "conversationId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "local_decrypted_content",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ownerId` TEXT NOT NULL, `conversationId` INTEGER NOT NULL, `messageId` INTEGER NOT NULL, `contentKind` TEXT NOT NULL, `encryptedBlob` TEXT NOT NULL, `expiresAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`ownerId`, `conversationId`, `messageId`, `contentKind`), FOREIGN KEY(`ownerId`, `conversationId`) REFERENCES `local_conversations`(`ownerId`, `conversationId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "ownerId",
+            "columnName": "ownerId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "conversationId",
+            "columnName": "conversationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "messageId",
+            "columnName": "messageId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentKind",
+            "columnName": "contentKind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "encryptedBlob",
+            "columnName": "encryptedBlob",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expiresAt",
+            "columnName": "expiresAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "ownerId",
+            "conversationId",
+            "messageId",
+            "contentKind"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_local_decrypted_content_ownerId_conversationId",
+            "unique": false,
+            "columnNames": [
+              "ownerId",
+              "conversationId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_local_decrypted_content_ownerId_conversationId` ON `${TABLE_NAME}` (`ownerId`, `conversationId`)"
+          },
+          {
+            "name": "index_local_decrypted_content_ownerId_expiresAt",
+            "unique": false,
+            "columnNames": [
+              "ownerId",
+              "expiresAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_local_decrypted_content_ownerId_expiresAt` ON `${TABLE_NAME}` (`ownerId`, `expiresAt`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "local_conversations",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "ownerId",
+              "conversationId"
+            ],
+            "referencedColumns": [
+              "ownerId",
+              "conversationId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "local_sync_cursors",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ownerId` TEXT NOT NULL, `conversationId` INTEGER NOT NULL, `newestMessageId` INTEGER NOT NULL, `oldestMessageId` INTEGER NOT NULL, `hasMoreBefore` INTEGER NOT NULL, `phase` TEXT NOT NULL, `continuationCursor` TEXT NOT NULL, `lastSuccessfulSyncAt` INTEGER NOT NULL, `lastAttemptAt` INTEGER NOT NULL, `lastError` TEXT NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`ownerId`, `conversationId`), FOREIGN KEY(`ownerId`, `conversationId`) REFERENCES `local_conversations`(`ownerId`, `conversationId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "ownerId",
+            "columnName": "ownerId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "conversationId",
+            "columnName": "conversationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "newestMessageId",
+            "columnName": "newestMessageId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "oldestMessageId",
+            "columnName": "oldestMessageId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hasMoreBefore",
+            "columnName": "hasMoreBefore",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "phase",
+            "columnName": "phase",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "continuationCursor",
+            "columnName": "continuationCursor",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSuccessfulSyncAt",
+            "columnName": "lastSuccessfulSyncAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastAttemptAt",
+            "columnName": "lastAttemptAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastError",
+            "columnName": "lastError",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "ownerId",
+            "conversationId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_local_sync_cursors_ownerId_updatedAt",
+            "unique": false,
+            "columnNames": [
+              "ownerId",
+              "updatedAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_local_sync_cursors_ownerId_updatedAt` ON `${TABLE_NAME}` (`ownerId`, `updatedAt`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "local_conversations",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "ownerId",
+              "conversationId"
+            ],
+            "referencedColumns": [
+              "ownerId",
+              "conversationId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "local_receipts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ownerId` TEXT NOT NULL, `conversationId` INTEGER NOT NULL, `participantIdentity` TEXT NOT NULL, `deliveredMessageId` INTEGER NOT NULL, `readMessageId` INTEGER NOT NULL, `deliveredPending` INTEGER NOT NULL, `readPending` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`ownerId`, `conversationId`, `participantIdentity`), FOREIGN KEY(`ownerId`, `conversationId`) REFERENCES `local_conversations`(`ownerId`, `conversationId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "ownerId",
+            "columnName": "ownerId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "conversationId",
+            "columnName": "conversationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "participantIdentity",
+            "columnName": "participantIdentity",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deliveredMessageId",
+            "columnName": "deliveredMessageId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "readMessageId",
+            "columnName": "readMessageId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deliveredPending",
+            "columnName": "deliveredPending",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "readPending",
+            "columnName": "readPending",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "ownerId",
+            "conversationId",
+            "participantIdentity"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_local_receipts_ownerId_conversationId",
+            "unique": false,
+            "columnNames": [
+              "ownerId",
+              "conversationId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_local_receipts_ownerId_conversationId` ON `${TABLE_NAME}` (`ownerId`, `conversationId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "local_conversations",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "ownerId",
+              "conversationId"
+            ],
+            "referencedColumns": [
+              "ownerId",
+              "conversationId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "local_attachment_transfers",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ownerId` TEXT NOT NULL, `transferId` TEXT NOT NULL, `clientMessageId` TEXT NOT NULL, `localMessageId` INTEGER NOT NULL, `conversationId` INTEGER NOT NULL, `direction` TEXT NOT NULL, `localFilePath` TEXT NOT NULL, `remotePath` TEXT NOT NULL, `checksumSha256` TEXT NOT NULL, `bytesTransferred` INTEGER NOT NULL, `totalBytes` INTEGER NOT NULL, `state` TEXT NOT NULL, `attemptCount` INTEGER NOT NULL, `nextAttemptAt` INTEGER NOT NULL, `lastError` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`ownerId`, `transferId`), FOREIGN KEY(`ownerId`, `conversationId`) REFERENCES `local_conversations`(`ownerId`, `conversationId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "ownerId",
+            "columnName": "ownerId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "transferId",
+            "columnName": "transferId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "clientMessageId",
+            "columnName": "clientMessageId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "localMessageId",
+            "columnName": "localMessageId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "conversationId",
+            "columnName": "conversationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "direction",
+            "columnName": "direction",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "localFilePath",
+            "columnName": "localFilePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "remotePath",
+            "columnName": "remotePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "checksumSha256",
+            "columnName": "checksumSha256",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bytesTransferred",
+            "columnName": "bytesTransferred",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalBytes",
+            "columnName": "totalBytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attemptCount",
+            "columnName": "attemptCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextAttemptAt",
+            "columnName": "nextAttemptAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastError",
+            "columnName": "lastError",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "ownerId",
+            "transferId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_local_attachment_transfers_ownerId_conversationId_updatedAt",
+            "unique": false,
+            "columnNames": [
+              "ownerId",
+              "conversationId",
+              "updatedAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_local_attachment_transfers_ownerId_conversationId_updatedAt` ON `${TABLE_NAME}` (`ownerId`, `conversationId`, `updatedAt`)"
+          },
+          {
+            "name": "index_local_attachment_transfers_ownerId_state_nextAttemptAt",
+            "unique": false,
+            "columnNames": [
+              "ownerId",
+              "state",
+              "nextAttemptAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_local_attachment_transfers_ownerId_state_nextAttemptAt` ON `${TABLE_NAME}` (`ownerId`, `state`, `nextAttemptAt`)"
+          },
+          {
+            "name": "index_local_attachment_transfers_ownerId_clientMessageId",
+            "unique": false,
+            "columnNames": [
+              "ownerId",
+              "clientMessageId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_local_attachment_transfers_ownerId_clientMessageId` ON `${TABLE_NAME}` (`ownerId`, `clientMessageId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "local_conversations",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "ownerId",
+              "conversationId"
+            ],
+            "referencedColumns": [
+              "ownerId",
+              "conversationId"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c090da797290b72a29cc11509c74d40c')"
+    ]
+  }
+}

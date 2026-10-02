@@ -1,0 +1,1253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Family Chat Admin</title>
+  <style>
+    :root {
+      --accent: #2E8168;
+      --accent-soft: rgba(46, 129, 104, .10);
+      --attention: #A45B06;
+      --attention-soft: rgba(164, 91, 6, .10);
+      --danger: #B42318;
+      --danger-soft: rgba(180, 35, 24, .09);
+      --ground: #F2F5F3;
+      --surface: #FFFFFF;
+      --surface-2: #F7F9F8;
+      --ink: #14201B;
+      --muted: #5B6B64;
+      --line: rgba(20, 32, 27, .11);
+      --line-soft: rgba(20, 32, 27, .06);
+      --on-accent: #FFFFFF;
+      --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI",
+                 "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-data: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --accent: #62B79A; --accent-soft: rgba(98, 183, 154, .13);
+        --attention: #E0A05A; --attention-soft: rgba(224, 160, 90, .13);
+        --danger: #F2907F; --danger-soft: rgba(242, 144, 127, .12);
+        --ground: #0E1512; --surface: #17201C; --surface-2: #1D2723;
+        --ink: #E4EDE8; --muted: #96A69E;
+        --line: rgba(228, 237, 232, .13); --line-soft: rgba(228, 237, 232, .07);
+        --on-accent: #0E1512;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--ground); color: var(--ink);
+      font-family: var(--font-ui); font-size: 15px; line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    .hidden { display: none !important; }
+    .page { width: min(940px, calc(100vw - 32px)); margin: 0 auto; padding: 20px 0 64px; }
+
+    /* login */
+    .login-shell { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    .login-card { width: min(380px, 100%); }
+    .login-card h1 { font-size: 19px; margin: 0 0 18px; font-weight: 650; letter-spacing: -.01em; }
+
+    /* top bar */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 12px 18px; background: var(--surface); border: 1px solid var(--line);
+      border-radius: 14px; margin-bottom: 12px;
+    }
+    .brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+    .brand h1 { margin: 0; font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
+    .brand .host { font-family: var(--font-data); font-size: 12.5px; color: var(--muted); }
+    .topbar-actions { display: flex; gap: 8px; align-items: center; }
+    .icon-btn {
+      font: inherit; font-size: 13px; padding: 6px 13px; border-radius: 999px;
+      border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer;
+    }
+    .icon-btn:hover { background: var(--surface-2); }
+    .synced { font-family: var(--font-data); font-size: 12px; color: var(--muted); }
+
+    /* attention */
+    .attention {
+      border: 1px solid var(--attention); background: var(--attention-soft);
+      border-radius: 14px; padding: 4px 0 0; margin-bottom: 12px; overflow: hidden;
+    }
+    .attention-head {
+      display: flex; align-items: center; gap: 9px; padding: 10px 18px 8px;
+      font-size: 13px; font-weight: 650; color: var(--attention);
+    }
+    .attention-head .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--attention); flex: none; }
+    .approve-row {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      padding: 11px 18px; border-top: 1px solid var(--line-soft); background: var(--surface);
+    }
+    .approve-row .what { flex: 1 1 260px; min-width: 0; }
+    .approve-row .what b { font-weight: 620; }
+    .approve-row .meta {
+      font-family: var(--font-data); font-size: 12px; color: var(--muted);
+      display: block; margin-top: 1px; word-break: break-all;
+    }
+    .kind {
+      font-size: 11px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 5px; flex: none;
+      background: var(--attention-soft); color: var(--attention);
+    }
+    .kind.danger { background: var(--danger-soft); color: var(--danger); }
+
+    /* vitals */
+    .vitals { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; margin-bottom: 14px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+    .label {
+      font-size: 11.5px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+    }
+    .storage-figure {
+      display: flex; align-items: baseline; gap: 7px; margin: 9px 0 10px;
+      font-family: var(--font-data); font-variant-numeric: tabular-nums;
+    }
+    .storage-figure .big { font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
+    .storage-figure .of { font-size: 13px; color: var(--muted); }
+    .bar { height: 7px; border-radius: 99px; background: var(--line-soft); overflow: hidden; }
+    .bar > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+    .bar-foot {
+      display: flex; justify-content: space-between; margin-top: 7px;
+      font-family: var(--font-data); font-size: 12px; color: var(--muted);
+    }
+    .counts { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 18px; margin-top: 10px; }
+    .count { display: flex; align-items: baseline; justify-content: space-between; padding: 3px 0; }
+    .count span { font-size: 13.5px; color: var(--muted); }
+    .count b { font-family: var(--font-data); font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 600; }
+
+    /* tabs */
+    .tabs { display: flex; gap: 3px; margin-bottom: 12px; flex-wrap: wrap; }
+    .tab {
+      font: inherit; font-size: 13.5px; padding: 7px 15px; border-radius: 999px;
+      border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer;
+      display: inline-flex; align-items: center; gap: 7px;
+    }
+    .tab:hover { background: var(--surface); color: var(--ink); }
+    .tab[aria-selected="true"] {
+      background: var(--surface); border-color: var(--line); color: var(--ink); font-weight: 600;
+    }
+    .tab .badge {
+      font-family: var(--font-data); font-size: 11px; font-weight: 700;
+      min-width: 17px; height: 17px; padding: 0 5px; border-radius: 99px;
+      display: inline-grid; place-items: center;
+      background: var(--attention); color: var(--on-accent);
+    }
+    .panel { display: none; }
+    .panel.on { display: block; }
+
+    /* rows */
+    .rows { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
+    .row { display: flex; align-items: center; gap: 13px; padding: 12px 18px; border-top: 1px solid var(--line-soft); }
+    .row:first-child { border-top: 0; }
+    .row .who { flex: 1 1 auto; min-width: 0; }
+    .row .who b { font-weight: 600; }
+    .row .who .meta {
+      display: block; font-family: var(--font-data); font-size: 12px; color: var(--muted); margin-top: 1px;
+      word-break: break-all;
+    }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+    .status-dot.on { background: var(--accent); }
+    .status-dot.off { background: var(--line); }
+    .tag {
+      font-size: 11.5px; padding: 2px 8px; border-radius: 5px; flex: none;
+      background: var(--accent-soft); color: var(--accent); font-weight: 600;
+    }
+    .link-btn {
+      font: inherit; font-size: 13px; background: none; border: 0; color: var(--muted);
+      cursor: pointer; padding: 4px 8px; border-radius: 7px; flex: none;
+    }
+    .link-btn:hover { background: var(--surface-2); color: var(--ink); }
+    .link-btn.warn { color: var(--danger); }
+
+    /* buttons */
+    .btn {
+      font: inherit; font-size: 13.5px; font-weight: 600; padding: 8px 16px; border-radius: 999px;
+      border: 1px solid transparent; cursor: pointer; background: var(--accent); color: var(--on-accent);
+    }
+    .btn.quiet { background: transparent; border-color: var(--line); color: var(--ink); }
+    .btn.quiet:hover { background: var(--surface-2); }
+    .btn.warn { background: var(--danger); color: #fff; }
+    .btn.sm { font-size: 12.5px; padding: 6px 13px; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+
+    /* release */
+    .release-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .drop {
+      border: 1.5px dashed var(--line); border-radius: 12px; padding: 20px 16px; text-align: center;
+      color: var(--muted); font-size: 13.5px; background: var(--surface-2); margin-top: 12px; cursor: pointer;
+      display: block;
+    }
+    .drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+    .drop b { display: block; color: var(--ink); font-size: 14px; margin-bottom: 3px; font-weight: 600; }
+    .kv { display: grid; gap: 6px; margin-top: 12px; }
+    .kv > div { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+    .kv .k { color: var(--muted); flex: none; }
+    .kv .v {
+      font-family: var(--font-data); font-variant-numeric: tabular-nums; text-align: right;
+      min-width: 0; word-break: break-all;
+    }
+    .version-line { display: flex; align-items: baseline; gap: 9px; margin-top: 4px; }
+    .version-line .v { font-family: var(--font-data); font-size: 21px; font-weight: 600; letter-spacing: -.01em; }
+
+    /* forms */
+    .field { display: grid; gap: 6px; margin-top: 14px; }
+    .field > span { font-size: 13px; color: var(--muted); }
+    input[type="text"], input[type="password"], textarea {
+      font: inherit; font-size: 14px; padding: 9px 12px; border-radius: 10px;
+      border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); width: 100%;
+    }
+    textarea { resize: vertical; min-height: 74px; line-height: 1.5; }
+    .pill-announcement {
+      font-size: 11px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 5px; background: var(--accent-soft); color: var(--accent);
+    }
+    input[readonly] { font-family: var(--font-data); font-size: 12.5px; color: var(--muted); }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .row-actions { display: flex; gap: 9px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+    h2 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -.005em; }
+    .card + .card { margin-top: 12px; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .sub { font-size: 13px; color: var(--muted); margin: 3px 0 0; }
+    .status { font-size: 13px; color: var(--accent); min-height: 20px; }
+    .status.error { color: var(--danger); }
+
+    /* danger zone */
+    .zone-danger { border-color: var(--danger); }
+    .zone-danger h2 { color: var(--danger); }
+    .danger-row {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      padding: 12px 0; border-top: 1px solid var(--line-soft);
+    }
+    .danger-row:first-of-type { border-top: 0; }
+    .danger-row .what { flex: 1 1 260px; }
+    .danger-row .what b { font-weight: 600; font-size: 14px; }
+    .danger-row .what span { display: block; font-size: 12.5px; color: var(--muted); }
+    .confirm-panel { flex: 1 1 100%; display: grid; gap: 8px; padding: 4px 0 2px; }
+    .confirm-panel p { margin: 0; font-size: 13px; color: var(--muted); }
+    .confirm-panel code {
+      font-family: var(--font-data); background: var(--danger-soft); color: var(--danger);
+      padding: 1px 6px; border-radius: 5px; font-size: 12.5px;
+    }
+    .confirm-actions { display: flex; gap: 9px; flex-wrap: wrap; }
+
+    /* blog */
+    .post { padding: 16px 18px; border-top: 1px solid var(--line-soft); }
+    .post:first-child { border-top: 0; }
+    .post-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .post-head b { font-weight: 600; }
+    .post-head .when { font-family: var(--font-data); font-size: 12px; color: var(--muted); }
+    .post-body { margin: 8px 0 0; font-size: 14px; white-space: pre-wrap; }
+    .post-meta {
+      font-family: var(--font-data); font-size: 12px; color: var(--muted); margin-top: 8px;
+      display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+    }
+    .media { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-top: 10px; }
+    .media img, .media video {
+      width: 100%; max-height: 300px; object-fit: contain; border-radius: 10px; background: var(--surface-2);
+    }
+    .comments { display: grid; gap: 8px; margin-top: 10px; }
+    .comment { padding: 10px 12px; border-radius: 10px; background: var(--surface-2); display: grid; gap: 5px; }
+    .comment-head { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+    .empty { padding: 30px 18px; text-align: center; color: var(--muted); font-size: 13.5px; }
+
+    @media (max-width: 760px) {
+      .vitals, .release-grid { grid-template-columns: 1fr; }
+      .topbar { flex-direction: column; align-items: flex-start; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  </style>
+</head>
+<body>
+  <section id="loginView" class="login-shell">
+    <div class="card login-card">
+      <h1>Family Chat Admin</h1>
+      <div id="loginPasswordPanel">
+        <label class="field" style="margin-top:0"><span>Username</span>
+          <input id="loginUsername" type="text" autocomplete="username" /></label>
+        <label class="field"><span>Password</span>
+          <input id="loginPassword" type="password" autocomplete="current-password" /></label>
+        <div class="row-actions"><button id="loginButton" class="btn">Sign in</button></div>
+      </div>
+      <div id="loginTotpPanel" class="hidden">
+        <label class="field" style="margin-top:0"><span>Six-digit code from your authenticator</span>
+          <input id="loginTotpCode" type="text" inputmode="numeric" autocomplete="one-time-code" /></label>
+        <div class="row-actions">
+          <button id="loginTotpButton" class="btn">Verify</button>
+          <button id="loginBackButton" class="btn quiet">Back</button>
+        </div>
+      </div>
+      <div id="loginStatus" class="status" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <main id="dashboardView" class="hidden">
+    <div class="page">
+      <header class="topbar">
+        <div class="brand">
+          <h1>Family Chat</h1>
+          <span class="host" id="hostName">-</span>
+        </div>
+        <div class="topbar-actions">
+          <span class="synced" id="syncedAt"></span>
+          <button id="refreshButton" class="icon-btn">Refresh</button>
+          <button id="logoutButton" class="icon-btn">Sign out</button>
+        </div>
+      </header>
+
+      <div id="dashboardStatus" class="status" style="margin-bottom:10px"></div>
+
+      <!-- Absent entirely when nothing is pending. -->
+      <section class="attention hidden" id="attentionBlock">
+        <div class="attention-head"><i class="dot"></i> <span id="attentionCount"></span></div>
+        <div id="attentionRows"></div>
+      </section>
+
+      <section class="vitals">
+        <article class="card">
+          <div class="label">Storage</div>
+          <div class="storage-figure">
+            <span class="big" id="usedStorage">-</span>
+            <span class="of">of <span id="totalStorage">-</span></span>
+          </div>
+          <div class="bar"><i id="storageBar" style="width:0%"></i></div>
+          <div class="bar-foot"><span id="storagePct">-</span><span id="freeStorage">-</span></div>
+        </article>
+        <article class="card">
+          <div class="label">At a glance</div>
+          <div class="counts">
+            <div class="count"><span>Family</span><b id="registeredCount">0</b></div>
+            <div class="count"><span>Online</span><b id="onlineCount">0</b></div>
+            <div class="count"><span>Messages</span><b id="messageCount">0</b></div>
+            <div class="count"><span>Posts</span><b id="blogPostCount">0</b></div>
+          </div>
+        </article>
+      </section>
+
+      <nav class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" data-panel="family">Family</button>
+        <button class="tab" role="tab" aria-selected="false" data-panel="releases">Releases</button>
+        <button class="tab" role="tab" aria-selected="false" data-panel="blog">Blog</button>
+        <button class="tab" role="tab" aria-selected="false" data-panel="security">
+          Security <i class="badge hidden" id="securityBadge">1</i>
+        </button>
+        <button class="tab" role="tab" aria-selected="false" data-panel="data">Data</button>
+      </nav>
+
+      <section class="panel on" id="panel-family">
+        <div class="rows" id="familyRows"></div>
+      </section>
+
+      <section class="panel" id="panel-releases">
+        <div class="release-grid">
+          <article class="card">
+            <div class="card-head"><h2>Stable</h2><span class="tag">Live</span></div>
+            <div id="releaseSummary"></div>
+            <label class="drop" id="releaseDrop">
+              <b>Drop an APK here</b>Version comes from the filename
+              <input id="releaseFile" type="file" accept=".apk,application/vnd.android.package-archive" class="hidden" />
+            </label>
+            <div class="field hidden" id="releaseVersionField"><span>Version could not be read — enter it</span>
+              <input id="releaseVersion" type="text" placeholder="v4.1.6" /></div>
+            <div class="row-actions">
+              <button id="uploadReleaseButton" class="btn" disabled>Upload</button>
+              <span id="releaseStatus" class="status"></span>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-head"><h2>Beta</h2></div>
+            <div id="prereleaseSummary"></div>
+            <label class="drop" id="prereleaseDrop">
+              <b>Drop an APK here</b>A filename with (beta) lands in this channel
+              <input id="prereleaseFile" type="file" accept=".apk,application/vnd.android.package-archive" class="hidden" />
+            </label>
+            <div class="field hidden" id="prereleaseVersionField"><span>Version could not be read — enter it</span>
+              <input id="prereleaseVersion" type="text" placeholder="v4.1.6" /></div>
+            <div class="row-actions">
+              <button id="uploadPrereleaseButton" class="btn" disabled>Upload</button>
+              <span id="prereleaseStatus" class="status"></span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-blog">
+        <article class="card" style="margin-bottom:12px">
+          <div class="card-head">
+            <div>
+              <h2>Post an update announcement</h2>
+              <p class="sub">Published to the family blog as <strong>Update Announcement</strong>.</p>
+            </div>
+          </div>
+          <label class="field">
+            <span>What changed</span>
+            <textarea id="announcementBody" rows="3" placeholder="Version 4.1.8 is out — blog photos now open full screen."></textarea>
+          </label>
+          <div class="row-actions">
+            <button id="publishAnnouncementButton" class="btn">Publish</button>
+            <button id="cancelAnnouncementEditButton" class="btn quiet hidden">Cancel edit</button>
+            <span id="announcementStatus" class="status"></span>
+          </div>
+        </article>
+        <div class="rows" id="blogPosts"></div>
+        <div class="row-actions">
+          <button id="loadOlderBlogButton" class="btn quiet hidden">Load older</button>
+          <span id="blogStatus" class="status"></span>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-security">
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <h2>Two-step verification</h2>
+              <p class="sub" id="totpStatusText"></p>
+            </div>
+            <div class="row-actions" style="margin-top:0">
+              <button id="startTotpSetupButton" class="btn">Turn on</button>
+              <button id="disableTotpPanelToggle" class="btn quiet hidden">Turn off</button>
+            </div>
+          </div>
+          <div id="totpSetupPanel" class="hidden">
+            <label class="field"><span>Account label</span><input id="totpLabel" type="text" readonly /></label>
+            <label class="field"><span>Setup key — enter this in your authenticator</span>
+              <input id="totpSecret" type="text" readonly /></label>
+            <label class="field"><span>otpauth URI</span><input id="totpUri" type="text" readonly /></label>
+            <label class="field"><span>Code shown in the app right now</span>
+              <input id="totpSetupCode" type="text" inputmode="numeric" autocomplete="one-time-code" /></label>
+            <div class="row-actions">
+              <button id="confirmTotpSetupButton" class="btn">Turn on</button>
+              <button id="cancelTotpSetupButton" class="btn quiet">Cancel</button>
+            </div>
+          </div>
+          <div id="totpDisablePanel" class="hidden">
+            <label class="field"><span>Admin password</span>
+              <input id="disableTotpPassword" type="password" autocomplete="current-password" /></label>
+            <label class="field"><span>Current code</span>
+              <input id="disableTotpCode" type="text" inputmode="numeric" autocomplete="one-time-code" /></label>
+            <div class="row-actions">
+              <button id="disableTotpButton" class="btn warn">Turn off</button>
+              <button id="cancelDisableTotpButton" class="btn quiet">Cancel</button>
+            </div>
+          </div>
+        </article>
+        <article class="card">
+          <h2>Admin password</h2>
+          <label class="field"><span>Current password</span>
+            <input id="currentPassword" type="password" autocomplete="current-password" /></label>
+          <label class="field"><span>New password</span>
+            <input id="newPassword" type="password" autocomplete="new-password" /></label>
+          <div class="row-actions"><button id="changePasswordButton" class="btn">Change password</button></div>
+        </article>
+      </section>
+
+      <section class="panel" id="panel-data">
+        <article class="card">
+          <h2>Server</h2>
+          <div class="kv" style="margin-top:10px">
+            <div><span class="k">Messages</span><span class="v" id="dataMessageCount">0</span></div>
+            <div><span class="k">With attachments</span><span class="v" id="attachmentCount">0</span></div>
+            <div><span class="k">Blog posts / comments</span><span class="v" id="dataBlogCounts">0 / 0</span></div>
+            <div><span class="k">Project directory</span><span class="v" id="projectPath">-</span></div>
+          </div>
+        </article>
+        <article class="card zone-danger">
+          <h2>Cannot be undone</h2>
+          <div id="dangerRows" style="margin-top:10px"></div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const esc = (value) => String(value ?? "").replace(/[&<>"]/g,
+      (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[char]));
+
+    let refreshTimer = null;
+    let blogNextCursor = "";
+    let overview = null;
+    const authState = { challenge: "", username: "" };
+    const pickedFiles = { release: null, beta: null };
+
+    const fmtBytes = (value) => {
+      const bytes = Number(value || 0);
+      if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
+      const units = ["B", "KB", "MB", "GB", "TB"];
+      let size = bytes;
+      let index = 0;
+      while (size >= 1024 && index < units.length - 1) { size /= 1024; index += 1; }
+      return `${size.toFixed(size >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
+    };
+    const fmtNum = (value) => Number(value || 0).toLocaleString("en-US");
+    const fmtTime = (value) => (value ? new Date(value).toLocaleString() : "-");
+    const fmtClock = () => new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+    const fmtCooldown = (ms) => {
+      const seconds = Math.max(Math.ceil(Number(ms || 0) / 1000), 0);
+      const minutes = Math.floor(seconds / 60);
+      if (minutes <= 0) return `${seconds} seconds`;
+      return seconds % 60 ? `${minutes} min ${seconds % 60} s` : `${minutes} minutes`;
+    };
+
+    const setStatus = (element, message, isError = false) => {
+      element.textContent = message || "";
+      element.classList.toggle("error", !!isError);
+    };
+
+    async function api(path, options = {}) {
+      const headers = new Headers(options.headers || {});
+      const init = { method: options.method || "GET", credentials: "include", headers };
+      if (options.body instanceof FormData) {
+        init.body = options.body;
+      } else if (options.body !== undefined) {
+        headers.set("Content-Type", "application/json");
+        init.body = JSON.stringify(options.body);
+      }
+      const response = await fetch(path, init);
+      const text = await response.text();
+      const data = text ? (() => { try { return JSON.parse(text); } catch { return null; } })() : null;
+      if (!response.ok) {
+        const error = new Error(data && data.error ? data.error : text || "request_failed");
+        error.code = data && data.error ? data.error : error.message;
+        error.payload = data || null;
+        error.message = describeError(error);
+        throw error;
+      }
+      return data || {};
+    }
+
+    // Every failure the admin can actually hit, said in words. Raw codes only
+    // survive as a last resort, and they are the ones worth reporting anyway.
+    function describeError(error) {
+      const code = error.code || "";
+      if (code === "owner_groups_block_deletion") {
+        const groups = Array.isArray(error.payload?.groups) ? error.payload.groups : [];
+        const names = groups.map((g) => g.title || g.group_code || `#${g.id}`).filter(Boolean).join(", ");
+        return names
+          ? `This account still owns these groups — hand them over or delete them first: ${names}`
+          : "This account still owns groups. Hand them over or delete them first.";
+      }
+      const table = {
+        unauthorized: "Your session expired. Sign in again.",
+        session_expired: "Your session expired. Sign in again.",
+        invalid_version: "The server rejected that version number.",
+        apk_only: "That is not an APK.",
+        no_file: "The file never arrived. Pick it again.",
+        device_keys_not_ready: "The device is still uploading its keys. Try again shortly.",
+        blog_disabled: "Blog is off. Set BLOG_AT_REST_KEY on the server to enable it.",
+        blog_post_not_found: "That post is already gone.",
+        blog_comment_not_found: "That comment is already gone.",
+        request_failed: "Something went wrong. Try again.",
+      };
+      return table[code] || error.message || "Something went wrong. Try again.";
+    }
+
+    /* ---------------- tabs ---------------- */
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((other) =>
+          other.setAttribute("aria-selected", String(other === tab)));
+        document.querySelectorAll(".panel").forEach((panel) =>
+          panel.classList.toggle("on", panel.id === "panel-" + tab.dataset.panel));
+        if (tab.dataset.panel === "blog" && !blogNextCursor && !$("blogPosts").childElementCount) loadBlog(true);
+      });
+    });
+
+    /* ---------------- attention ---------------- */
+    function renderAttention(data) {
+      const rows = [];
+      for (const item of data.pending_registration_requests || []) {
+        rows.push(`
+          <div class="approve-row">
+            <span class="kind">Sign-up</span>
+            <div class="what"><b>${esc(item.requested_username)}</b> wants an account
+              <span class="meta">${fmtTime(item.created_at)} · ${esc(item.request_ip || "unknown IP")}</span></div>
+            <button class="btn sm" data-act="approveRegistration" data-id="${item.id}">Approve</button>
+            <button class="btn quiet sm" data-act="rejectRegistration" data-id="${item.id}">Reject</button>
+          </div>`);
+      }
+      for (const item of data.pending_devices || []) {
+        const label = item.device_name || `${item.manufacturer || ""} ${item.model || ""}`.trim() || item.device_id;
+        rows.push(`
+          <div class="approve-row">
+            <span class="kind">Device</span>
+            <div class="what">New device for <b>${esc(item.username)}</b> — ${esc(label)}
+              <span class="meta">${esc(item.user_code || "-")} · ${esc(item.device_id)} · ${esc(item.last_ip || "unknown IP")}</span></div>
+            <button class="btn sm" data-act="approveDevice" data-user="${item.user_id}" data-device="${esc(item.device_id)}">Approve</button>
+            <button class="btn quiet sm" data-act="rejectDevice" data-user="${item.user_id}" data-device="${esc(item.device_id)}">Reject</button>
+          </div>`);
+      }
+      for (const item of data.pending_account_deletion_requests || []) {
+        rows.push(`
+          <div class="approve-row">
+            <span class="kind danger">Deletion</span>
+            <div class="what"><b>${esc(item.username)}</b> asked to delete this account
+              <span class="meta">${fmtTime(item.created_at)} · removes the account and every message</span></div>
+            <button class="btn warn sm" data-act="approveDeletion" data-id="${item.id}">Approve deletion</button>
+            <button class="btn quiet sm" data-act="rejectDeletion" data-id="${item.id}">Reject</button>
+          </div>`);
+      }
+      const block = $("attentionBlock");
+      // No rows means no block at all - not a block saying there is nothing.
+      block.classList.toggle("hidden", rows.length === 0);
+      $("attentionCount").textContent = rows.length === 1 ? "1 thing needs you" : `${rows.length} things need you`;
+      $("attentionRows").innerHTML = rows.join("");
+    }
+
+    $("attentionRows").addEventListener("click", async (event) => {
+      const button = event.target.closest("button[data-act]");
+      if (!button) return;
+      const act = button.dataset.act;
+      try {
+        if (act === "approveRegistration") {
+          await api(`/manage_api/registrations/${button.dataset.id}/approve`, { method: "POST", body: {} });
+        } else if (act === "rejectRegistration") {
+          const note = prompt("Reason for rejecting (optional)", "");
+          if (note === null) return;
+          await api(`/manage_api/registrations/${button.dataset.id}/reject`, { method: "POST", body: { note } });
+        } else if (act === "approveDevice" || act === "rejectDevice") {
+          const action = act === "approveDevice" ? "approve" : "reject";
+          if (action === "reject" && !confirm("Reject and revoke this device?")) return;
+          await api(`/manage_api/devices/${button.dataset.user}/${encodeURIComponent(button.dataset.device)}/${action}`,
+            { method: "POST", body: {} });
+        } else if (act === "approveDeletion") {
+          if (!confirm("Approve? The account and all of its messages are deleted and cannot be recovered.")) return;
+          await api(`/manage_api/account_deletions/${button.dataset.id}/approve`, { method: "POST", body: {} });
+        } else if (act === "rejectDeletion") {
+          const note = prompt("Reason for rejecting (optional)", "");
+          if (note === null) return;
+          await api(`/manage_api/account_deletions/${button.dataset.id}/reject`, { method: "POST", body: { note } });
+        }
+        await loadOverview();
+      } catch (error) {
+        setStatus($("dashboardStatus"), error.message, true);
+      }
+    });
+
+    /* ---------------- family ---------------- */
+    function renderFamily(registered, onlineCodes) {
+      const target = $("familyRows");
+      if (!registered.length) {
+        target.innerHTML = `<div class="empty">No accounts yet.</div>`;
+        return;
+      }
+      // One list, not two. The old page rendered a registered list carrying an
+      // online capsule and then an online list underneath saying it again.
+      target.innerHTML = registered.map((item) => {
+        const online = onlineCodes.has(item.user_code);
+        return `
+          <div class="row">
+            <i class="status-dot ${online ? "on" : "off"}"></i>
+            <div class="who"><b>${esc(item.username)}</b>
+              <span class="meta">${esc(item.user_code)} · ${esc(item.last_login_ip || "no recent IP")}</span></div>
+            ${item.is_admin ? `<span class="tag">Admin</span>` : ""}
+            <button class="link-btn" data-id="${item.id}" data-username="${esc(item.username)}">Rename</button>
+          </div>`;
+      }).join("");
+    }
+
+    $("familyRows").addEventListener("click", async (event) => {
+      const button = event.target.closest("button[data-id]");
+      if (!button) return;
+      const username = prompt("New username", button.dataset.username || "");
+      if (username === null) return;
+      if (!username.trim()) return setStatus($("dashboardStatus"), "A username cannot be empty.", true);
+      try {
+        await api(`/manage_api/users/${button.dataset.id}/username`, { method: "POST", body: { username: username.trim() } });
+        await loadOverview();
+        setStatus($("dashboardStatus"), "Username changed.");
+      } catch (error) {
+        setStatus($("dashboardStatus"), error.message, true);
+      }
+    });
+
+    /* ---------------- releases ---------------- */
+    const detectVersion = (value) => {
+      const normalized = String(value || "").replace(/[（﹙【]/g, "(").replace(/[）﹚】]/g, ")").trim();
+      const match = normalized.match(/v\d+\.\d+\.\d+/i);
+      return match ? `v${match[0].slice(1)}` : "";
+    };
+
+    function renderRelease(target, release, emptyText) {
+      if (!release || !release.version || !release.file_name) {
+        target.innerHTML = `<p class="sub">${esc(emptyText)}</p>`;
+        return;
+      }
+      target.innerHTML = `
+        <div class="version-line"><span class="v">${esc(release.version_label || release.version)}</span></div>
+        <div class="kv">
+          <div><span class="k">Size</span><span class="v">${fmtBytes(release.file_size)}</span></div>
+          <div><span class="k">Uploaded</span><span class="v">${fmtTime(release.uploaded_at)}</span></div>
+          <div><span class="k">File</span><span class="v"><a href="${esc(release.download_url)}">${esc(release.file_name)}</a></span></div>
+        </div>`;
+    }
+
+    function bindChannel(channel) {
+      const isBeta = channel === "beta";
+      const drop = isBeta ? $("prereleaseDrop") : $("releaseDrop");
+      const input = isBeta ? $("prereleaseFile") : $("releaseFile");
+      const button = isBeta ? $("uploadPrereleaseButton") : $("uploadReleaseButton");
+      const status = isBeta ? $("prereleaseStatus") : $("releaseStatus");
+      const versionField = isBeta ? $("prereleaseVersionField") : $("releaseVersionField");
+
+      const accept = (file) => {
+        if (!file) return;
+        pickedFiles[channel] = file;
+        const detected = detectVersion(file.name);
+        // The manual version box only exists when detection failed. It used to
+        // sit there permanently with an example in it, restating what the
+        // filename already said.
+        versionField.classList.toggle("hidden", !!detected);
+        button.disabled = false;
+        setStatus(status, detected ? `${file.name} — ${detected}` : `${file.name} — version not recognised`);
+      };
+
+      input.addEventListener("change", () => accept(input.files && input.files[0]));
+      ["dragenter", "dragover"].forEach((type) => drop.addEventListener(type, (event) => {
+        event.preventDefault();
+        drop.classList.add("over");
+      }));
+      ["dragleave", "drop"].forEach((type) => drop.addEventListener(type, () => drop.classList.remove("over")));
+      drop.addEventListener("drop", (event) => {
+        event.preventDefault();
+        accept(event.dataTransfer?.files?.[0]);
+      });
+      button.addEventListener("click", () => uploadRelease(channel));
+    }
+
+    async function uploadRelease(channel) {
+      const isBeta = channel === "beta";
+      const button = isBeta ? $("uploadPrereleaseButton") : $("uploadReleaseButton");
+      const status = isBeta ? $("prereleaseStatus") : $("releaseStatus");
+      const manual = isBeta ? $("prereleaseVersion") : $("releaseVersion");
+      const file = pickedFiles[channel];
+      if (!file) return setStatus(status, "Pick an APK first.", true);
+      const version = detectVersion(file.name) || detectVersion(manual.value);
+      if (!/^v\d+\.\d+\.\d+$/.test(version)) {
+        return setStatus(status, "Enter a version like v4.1.6.", true);
+      }
+      button.disabled = true;
+      setStatus(status, "Uploading…");
+      try {
+        const form = new FormData();
+        form.append("channel", channel);
+        form.append("version", version);
+        form.append("apk", file);
+        const data = await api("/manage_api/app_release", { method: "POST", body: form });
+        renderRelease($("releaseSummary"), data.app_releases?.release || data.app_releases?.stable || null, "Nothing uploaded yet.");
+        renderRelease($("prereleaseSummary"), data.app_releases?.beta || data.app_releases?.prerelease || null, "Nothing uploaded yet.");
+        pickedFiles[channel] = null;
+        (isBeta ? $("prereleaseFile") : $("releaseFile")).value = "";
+        setStatus(status, `${isBeta ? "Beta" : "Stable"} is now ${version}.`);
+      } catch (error) {
+        setStatus(status, error.message, true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    /* ---------------- blog ---------------- */
+    function renderMedia(items) {
+      if (!Array.isArray(items) || !items.length) return "";
+      return `<div class="media">${items.map((item) => item.kind === "video"
+        ? `<video controls preload="metadata" src="${esc(item.url)}"></video>`
+        : `<img loading="lazy" src="${esc(item.url)}" alt="" />`).join("")}</div>`;
+    }
+
+    function appendPosts(items) {
+      const html = items.map((post) => `
+        <article class="post" data-post-id="${post.id}" data-announcement="${post.is_announcement ? "1" : ""}">
+          <div class="post-head"><b>${esc(post.author?.username || "unknown")}</b>
+            ${post.is_announcement ? `<span class="pill-announcement">Announcement</span>` : ""}
+            <span class="when">${fmtTime(post.created_at)}</span></div>
+          ${post.body ? `<p class="post-body">${esc(post.body)}</p>` : ""}
+          ${renderMedia(post.media)}
+          <div class="post-meta">
+            <span>${Number(post.like_count || 0)} likes</span>
+            <span>${Number(post.comment_count || 0)} comments</span>
+            <button class="link-btn" data-act="comments" data-post-id="${post.id}">Comments</button>
+            ${
+              // Edit appears only on announcements. The server refuses anything
+              // else, but offering a control that will be refused invites the
+              // idea that rewriting a family member's post is on the table.
+              post.is_announcement
+                ? `<button class="link-btn" data-act="editPost" data-post-id="${post.id}">Edit</button>`
+                : ""
+            }
+            <button class="link-btn warn" data-act="deletePost" data-post-id="${post.id}">Delete</button>
+          </div>
+          <div class="comments hidden"></div>
+        </article>`).join("");
+      $("blogPosts").insertAdjacentHTML("beforeend", html);
+    }
+
+    async function loadBlog(reset = true) {
+      if (reset) { blogNextCursor = ""; $("blogPosts").innerHTML = ""; }
+      try {
+        const query = blogNextCursor ? `?limit=20&cursor=${encodeURIComponent(blogNextCursor)}` : "?limit=20";
+        const data = await api(`/manage_api/blog/posts${query}`);
+        const items = Array.isArray(data.items) ? data.items : [];
+        if (reset && !items.length) $("blogPosts").innerHTML = `<div class="empty">No posts.</div>`;
+        else appendPosts(items);
+        blogNextCursor = data.next_cursor || "";
+        $("loadOlderBlogButton").classList.toggle("hidden", !blogNextCursor);
+        setStatus($("blogStatus"), "");
+      } catch (error) {
+        $("loadOlderBlogButton").classList.add("hidden");
+        $("blogPosts").innerHTML = `<div class="empty">${esc(error.message)}</div>`;
+        setStatus($("blogStatus"), "");
+      }
+    }
+
+    $("blogPosts").addEventListener("click", async (event) => {
+      const button = event.target.closest("button[data-act]");
+      if (!button) return;
+      const article = button.closest(".post");
+      const postId = Number(button.dataset.postId || article?.dataset.postId || 0);
+      if (button.dataset.act === "comments") {
+        const target = article.querySelector(".comments");
+        target.classList.remove("hidden");
+        target.innerHTML = `<div class="sub">Loading…</div>`;
+        try {
+          const data = await api(`/manage_api/blog/posts/${postId}/comments?limit=200`);
+          const comments = Array.isArray(data.items) ? data.items : [];
+          target.innerHTML = comments.length ? comments.map((comment) => `
+            <div class="comment">
+              <div class="comment-head"><b>${esc(comment.author?.username || "unknown")}</b>
+                <span class="when">${fmtTime(comment.created_at)}</span></div>
+              <div>${esc(comment.body)}</div>
+              <div><button class="link-btn warn" data-act="deleteComment" data-comment-id="${comment.id}"
+                data-post-id="${postId}">Delete</button></div>
+            </div>`).join("") : `<div class="sub">No comments.</div>`;
+        } catch (error) {
+          target.innerHTML = `<div class="sub">${esc(error.message)}</div>`;
+        }
+      } else if (button.dataset.act === "editPost") {
+        const body = article.querySelector(".post-body")?.textContent || "";
+        beginAnnouncementEdit(postId, body);
+      } else if (button.dataset.act === "deletePost") {
+        if (!confirm("Delete this post, its comments and its media?")) return;
+        try {
+          await api(`/manage_api/blog/posts/${postId}`, { method: "DELETE" });
+          await Promise.all([loadOverview(), loadBlog(true)]);
+        } catch (error) { setStatus($("blogStatus"), error.message, true); }
+      } else if (button.dataset.act === "deleteComment") {
+        if (!confirm("Delete this comment?")) return;
+        try {
+          await api(`/manage_api/blog/comments/${button.dataset.commentId}`, { method: "DELETE" });
+          await loadOverview();
+          article.querySelector("button[data-act='comments']").click();
+        } catch (error) { setStatus($("blogStatus"), error.message, true); }
+      }
+    });
+
+    /* ---------------- announcements ---------------- */
+    // One box does both jobs. editingAnnouncementId is the only state: null
+    // means the next Publish creates, a number means it edits that post.
+    let editingAnnouncementId = null;
+
+    function beginAnnouncementEdit(postId, body) {
+      editingAnnouncementId = postId;
+      $("announcementBody").value = body;
+      $("publishAnnouncementButton").textContent = "Save changes";
+      $("cancelAnnouncementEditButton").classList.remove("hidden");
+      setStatus($("announcementStatus"), "Editing an existing announcement.");
+      $("announcementBody").focus();
+      $("announcementBody").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function endAnnouncementEdit() {
+      editingAnnouncementId = null;
+      $("announcementBody").value = "";
+      $("publishAnnouncementButton").textContent = "Publish";
+      $("cancelAnnouncementEditButton").classList.add("hidden");
+      setStatus($("announcementStatus"), "");
+    }
+
+    $("cancelAnnouncementEditButton").addEventListener("click", endAnnouncementEdit);
+
+    $("publishAnnouncementButton").addEventListener("click", async () => {
+      const body = $("announcementBody").value.trim();
+      if (!body) return setStatus($("announcementStatus"), "Write the announcement first.", true);
+      const button = $("publishAnnouncementButton");
+      button.disabled = true;
+      setStatus($("announcementStatus"), editingAnnouncementId ? "Saving…" : "Publishing…");
+      try {
+        if (editingAnnouncementId) {
+          await api(`/manage_api/blog/announcements/${editingAnnouncementId}`, {
+            method: "PUT",
+            body: { body },
+          });
+        } else {
+          const form = new FormData();
+          form.append("body", body);
+          await api("/manage_api/blog/announcements", { method: "POST", body: form });
+        }
+        const wasEditing = !!editingAnnouncementId;
+        endAnnouncementEdit();
+        await Promise.all([loadOverview(), loadBlog(true)]);
+        setStatus($("announcementStatus"), wasEditing ? "Announcement updated." : "Announcement published.");
+      } catch (error) {
+        setStatus($("announcementStatus"), error.message, true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    /* ---------------- danger zone ---------------- */
+    // Every one of these is unrecoverable and hits the whole family, so none of
+    // them fire on a click. The admin types the action's name first - the same
+    // guard the app uses for irreversible actions, and a confirm() dialog is not
+    // one: it is dismissed by reflex.
+    const dangerActions = [
+      {
+        id: "files",
+        title: "Clear chat files",
+        detail: "Deletes every attachment. Messages stay, but their photos and files stop opening.",
+        confirmWord: "clear files",
+        path: "/manage_api/clear_files",
+        done: (data) => `Deleted ${fmtNum(data.deletedFiles)} files across ${fmtNum(data.changedMessages)} messages.`,
+      },
+      {
+        id: "posts",
+        title: "Clear all blog posts",
+        detail: "Deletes every post, every comment and every photo or video attached to them.",
+        confirmWord: "clear posts",
+        path: "/manage_api/clear_blog",
+        done: (data) => `Deleted ${fmtNum(data.deletedPosts)} posts, ${fmtNum(data.deletedComments)} comments and ${fmtNum(data.deletedFiles)} files.`,
+      },
+      {
+        id: "history",
+        title: "Clear chat history",
+        detail: "Deletes every message and every attachment. There is no backup.",
+        confirmWord: "clear history",
+        path: "/manage_api/clear_history",
+        done: (data) => `Deleted ${fmtNum(data.deletedMessages)} messages and ${fmtNum(data.deletedFiles)} files.`,
+      },
+    ];
+
+    function renderDangerZone(accounts) {
+      const who = accounts === 1 ? "1 account" : `all ${accounts} accounts`;
+      $("dangerRows").innerHTML = dangerActions.map((action) => `
+        <div class="danger-row" data-action="${action.id}">
+          <div class="what">
+            <b>${esc(action.title)}</b>
+            <span>${esc(action.detail)} Affects ${esc(who)}.</span>
+          </div>
+          <button class="btn quiet sm" data-act="arm" data-action="${action.id}">Clear…</button>
+          <div class="confirm-panel hidden">
+            <p>Type <code>${esc(action.confirmWord)}</code> to confirm.</p>
+            <input type="text" autocomplete="off" spellcheck="false" data-confirm="${action.id}" />
+            <div class="confirm-actions">
+              <button class="btn warn sm" data-act="run" data-action="${action.id}" disabled>${esc(action.title)}</button>
+              <button class="btn quiet sm" data-act="cancel" data-action="${action.id}">Cancel</button>
+            </div>
+            <p class="status" data-status="${action.id}"></p>
+          </div>
+        </div>`).join("");
+    }
+
+    $("dangerRows").addEventListener("input", (event) => {
+      const input = event.target.closest("input[data-confirm]");
+      if (!input) return;
+      const action = dangerActions.find((item) => item.id === input.dataset.confirm);
+      const row = input.closest(".danger-row");
+      row.querySelector("button[data-act='run']").disabled =
+        input.value.trim().toLowerCase() !== action.confirmWord;
+    });
+
+    $("dangerRows").addEventListener("click", async (event) => {
+      const button = event.target.closest("button[data-act]");
+      if (!button) return;
+      const action = dangerActions.find((item) => item.id === button.dataset.action);
+      const row = button.closest(".danger-row");
+      const panel = row.querySelector(".confirm-panel");
+      const arm = row.querySelector("button[data-act='arm']");
+      const input = row.querySelector("input[data-confirm]");
+      const status = row.querySelector("[data-status]");
+
+      if (button.dataset.act === "arm") {
+        panel.classList.remove("hidden");
+        arm.classList.add("hidden");
+        input.value = "";
+        input.focus();
+        return;
+      }
+      if (button.dataset.act === "cancel") {
+        panel.classList.add("hidden");
+        arm.classList.remove("hidden");
+        setStatus(status, "");
+        return;
+      }
+      button.disabled = true;
+      setStatus(status, "Working…");
+      try {
+        const data = await api(action.path, { method: "POST", body: {} });
+        panel.classList.add("hidden");
+        arm.classList.remove("hidden");
+        setStatus($("dashboardStatus"), action.done(data));
+        await Promise.all([loadOverview(), loadBlog(true)]);
+      } catch (error) {
+        setStatus(status, error.message, true);
+      } finally {
+        button.disabled = true;
+      }
+    });
+
+    /* ---------------- overview ---------------- */
+    function renderOverview(data) {
+      overview = data;
+      const online = Array.isArray(data.online_users) ? data.online_users : [];
+      const registered = Array.isArray(data.registered_users) ? data.registered_users : [];
+      $("hostName").textContent = location.host;
+
+      const used = Number(data.storage?.used_bytes || 0);
+      const total = Number(data.storage?.total_bytes || 0);
+      const pct = total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0;
+      $("usedStorage").textContent = fmtBytes(used);
+      $("totalStorage").textContent = fmtBytes(total);
+      $("storageBar").style.width = `${pct}%`;
+      $("storagePct").textContent = `${pct}% used`;
+      $("freeStorage").textContent = `${fmtBytes(data.storage?.available_bytes)} free`;
+
+      $("registeredCount").textContent = fmtNum(registered.length);
+      $("onlineCount").textContent = fmtNum(data.online_count || 0);
+      $("messageCount").textContent = fmtNum(data.total_messages);
+      $("blogPostCount").textContent = fmtNum(data.blog_stats?.post_count);
+
+      $("dataMessageCount").textContent = fmtNum(data.total_messages);
+      $("attachmentCount").textContent = fmtNum(data.attachment_messages);
+      $("dataBlogCounts").textContent =
+        `${fmtNum(data.blog_stats?.post_count)} / ${fmtNum(data.blog_stats?.comment_count)}`;
+      $("projectPath").textContent = data.storage?.project_path || "-";
+
+      renderAttention(data);
+      renderFamily(registered, new Set(online.map((item) => item.user_code)));
+      renderDangerZone(registered.length);
+      renderTotp(data.admin || null);
+      renderRelease($("releaseSummary"), data.app_release || null, "Nothing uploaded yet.");
+      renderRelease($("prereleaseSummary"),
+        data.app_beta_release || data.app_prerelease || null, "Nothing uploaded yet.");
+      // A clock that rewrites itself every 15 seconds is motion that never means
+      // anything, so this only records the minute.
+      $("syncedAt").textContent = `Synced ${fmtClock()}`;
+    }
+
+    async function loadOverview() {
+      try {
+        renderOverview(await api("/manage_api/overview"));
+        setStatus($("dashboardStatus"), "");
+      } catch (error) {
+        if (error.code === "unauthorized" || error.code === "session_expired") {
+          showLogin();
+          setStatus($("loginStatus"), "Your session expired. Sign in again.", true);
+          return;
+        }
+        setStatus($("dashboardStatus"), error.message, true);
+      }
+    }
+
+    /* ---------------- security ---------------- */
+    function renderTotp(admin) {
+      const enabled = !!(admin && admin.totp_enabled);
+      $("totpStatusText").textContent = enabled
+        ? "On — every sign-in asks for a code."
+        : "Off — a password alone signs you in.";
+      $("startTotpSetupButton").textContent = enabled ? "Set up again" : "Turn on";
+      $("disableTotpPanelToggle").classList.toggle("hidden", !enabled);
+      // The one badge that stays: two-step being off is a standing condition,
+      // and it disappears the moment it is fixed.
+      $("securityBadge").classList.toggle("hidden", enabled);
+      if (!enabled) closeTotpDisable();
+    }
+    function closeTotpSetup() {
+      $("totpSetupPanel").classList.add("hidden");
+      ["totpLabel", "totpSecret", "totpUri", "totpSetupCode"].forEach((id) => { $(id).value = ""; });
+    }
+    function closeTotpDisable() {
+      $("totpDisablePanel").classList.add("hidden");
+      $("disableTotpPassword").value = "";
+      $("disableTotpCode").value = "";
+    }
+
+    /* ---------------- auth ---------------- */
+    function showLogin() {
+      $("loginView").classList.remove("hidden");
+      $("dashboardView").classList.add("hidden");
+      clearInterval(refreshTimer);
+      refreshTimer = null;
+      authState.challenge = "";
+      $("loginTotpPanel").classList.add("hidden");
+      $("loginPasswordPanel").classList.remove("hidden");
+      closeTotpSetup();
+      closeTotpDisable();
+    }
+    function showDashboard() {
+      $("loginView").classList.add("hidden");
+      $("dashboardView").classList.remove("hidden");
+      if (!refreshTimer) refreshTimer = setInterval(loadOverview, 15000);
+    }
+
+    async function login() {
+      $("loginButton").disabled = true;
+      setStatus($("loginStatus"), "Signing in…");
+      try {
+        const data = await api("/manage_api/login", {
+          method: "POST",
+          body: { username: $("loginUsername").value.trim(), password: $("loginPassword").value },
+        });
+        if (data.requires_totp) {
+          authState.challenge = data.challenge_token || "";
+          $("loginPassword").value = "";
+          $("loginPasswordPanel").classList.add("hidden");
+          $("loginTotpPanel").classList.remove("hidden");
+          $("loginTotpCode").focus();
+          setStatus($("loginStatus"), "");
+          return;
+        }
+        $("loginPassword").value = "";
+        showDashboard();
+        await loadOverview();
+        setStatus($("loginStatus"), "");
+      } catch (error) {
+        if (error.code === "cooldown_active") {
+          const retry = error.payload?.retry_after_ms ? fmtCooldown(error.payload.retry_after_ms) : "5 minutes";
+          setStatus($("loginStatus"), `Too many attempts. Try again in ${retry}.`, true);
+        } else if (error.code === "invalid_credentials") {
+          const left = Number(error.payload?.remaining_attempts);
+          setStatus($("loginStatus"),
+            `Wrong username or password.${Number.isFinite(left) && left > 0 ? ` ${left} attempts left.` : ""}`, true);
+        } else {
+          setStatus($("loginStatus"), error.message, true);
+        }
+      } finally {
+        $("loginButton").disabled = false;
+      }
+    }
+
+    async function verifyTotp() {
+      $("loginTotpButton").disabled = true;
+      try {
+        await api("/manage_api/login_totp", {
+          method: "POST",
+          body: { challenge_token: authState.challenge, code: $("loginTotpCode").value.trim() },
+        });
+        $("loginTotpCode").value = "";
+        showDashboard();
+        await loadOverview();
+        setStatus($("loginStatus"), "");
+      } catch (error) {
+        if (error.code === "invalid_totp_code") {
+          const left = Number(error.payload?.remaining_attempts);
+          setStatus($("loginStatus"),
+            `Wrong code.${Number.isFinite(left) && left > 0 ? ` ${left} attempts left.` : ""}`, true);
+        } else if (error.code === "totp_challenge_locked" || error.code === "invalid_or_expired_challenge") {
+          showLogin();
+          setStatus($("loginStatus"), "That attempt expired. Sign in again.", true);
+        } else {
+          setStatus($("loginStatus"), error.message, true);
+        }
+      } finally {
+        $("loginTotpButton").disabled = false;
+      }
+    }
+
+    /* ---------------- wiring ---------------- */
+    $("loginButton").addEventListener("click", login);
+    $("loginTotpButton").addEventListener("click", verifyTotp);
+    $("loginBackButton").addEventListener("click", () => { showLogin(); setStatus($("loginStatus"), ""); });
+    $("loginPassword").addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
+    $("loginTotpCode").addEventListener("keydown", (e) => { if (e.key === "Enter") verifyTotp(); });
+    $("refreshButton").addEventListener("click", () => Promise.all([loadOverview(), loadBlog(true)]));
+    $("logoutButton").addEventListener("click", async () => {
+      try { await api("/manage_api/logout", { method: "POST", body: {} }); } catch {}
+      showLogin();
+    });
+    $("loadOlderBlogButton").addEventListener("click", () => loadBlog(false));
+
+    $("changePasswordButton").addEventListener("click", async () => {
+      if (!$("currentPassword").value || !$("newPassword").value) {
+        return setStatus($("dashboardStatus"), "Enter your current and new password.", true);
+      }
+      $("changePasswordButton").disabled = true;
+      try {
+        await api("/manage_api/change_password", {
+          method: "POST",
+          body: { current_password: $("currentPassword").value, new_password: $("newPassword").value },
+        });
+        $("currentPassword").value = "";
+        $("newPassword").value = "";
+        setStatus($("dashboardStatus"), "Password changed.");
+      } catch (error) {
+        setStatus($("dashboardStatus"), error.message, true);
+      } finally {
+        $("changePasswordButton").disabled = false;
+      }
+    });
+
+    $("startTotpSetupButton").addEventListener("click", async () => {
+      closeTotpDisable();
+      $("startTotpSetupButton").disabled = true;
+      try {
+        const data = await api("/manage_api/totp/setup", { method: "POST", body: {} });
+        $("totpLabel").value = data.label || "";
+        $("totpSecret").value = data.secret || "";
+        $("totpUri").value = data.otpauth_url || "";
+        $("totpSetupPanel").classList.remove("hidden");
+        $("totpSetupCode").focus();
+      } catch (error) {
+        setStatus($("dashboardStatus"), error.message, true);
+      } finally {
+        $("startTotpSetupButton").disabled = false;
+      }
+    });
+    $("confirmTotpSetupButton").addEventListener("click", async () => {
+      const code = $("totpSetupCode").value.trim();
+      if (!code) return setStatus($("dashboardStatus"), "Enter the code your authenticator shows.", true);
+      try {
+        const data = await api("/manage_api/totp/enable", { method: "POST", body: { code } });
+        closeTotpSetup();
+        renderTotp(data.admin || null);
+        setStatus($("dashboardStatus"), "Two-step verification is on.");
+      } catch (error) {
+        setStatus($("dashboardStatus"), error.message, true);
+      }
+    });
+    $("cancelTotpSetupButton").addEventListener("click", closeTotpSetup);
+    $("disableTotpPanelToggle").addEventListener("click", () => {
+      closeTotpSetup();
+      $("totpDisablePanel").classList.toggle("hidden");
+    });
+    $("disableTotpButton").addEventListener("click", async () => {
+      if (!$("disableTotpPassword").value || !$("disableTotpCode").value.trim()) {
+        return setStatus($("dashboardStatus"), "Enter your password and a current code.", true);
+      }
+      try {
+        const data = await api("/manage_api/totp/disable", {
+          method: "POST",
+          body: { current_password: $("disableTotpPassword").value, code: $("disableTotpCode").value.trim() },
+        });
+        closeTotpDisable();
+        renderTotp(data.admin || null);
+        setStatus($("dashboardStatus"), "Two-step verification is off.");
+      } catch (error) {
+        setStatus($("dashboardStatus"), error.message, true);
+      }
+    });
+    $("cancelDisableTotpButton").addEventListener("click", closeTotpDisable);
+
+    bindChannel("release");
+    bindChannel("beta");
+
+    (async function bootstrap() {
+      try {
+        await api("/manage_api/me");
+        showDashboard();
+        await Promise.all([loadOverview(), loadBlog(true)]);
+      } catch {
+        showLogin();
+      }
+    })();
+  </script>
+</body>
+</html>

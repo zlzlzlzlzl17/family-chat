@@ -1,0 +1,6 @@
+# Copy to familychat.properties in this directory (ignored by Git).
+# Use a reachable HTTPS endpoint with a certificate trusted by Android.
+# example.com is a placeholder, not a provided backend.
+serverUrl=https://example.com
+# Overrides: -PfamilychatServerUrl=... then FAMILYCHAT_SERVER_URL.
+# A fresh install uses this default; an existing saved URL takes precedence.

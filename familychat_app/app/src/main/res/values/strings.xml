@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Family Chat</string>
+    <string name="default_notification_channel_id">family_chat_messages</string>
+</resources>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Family Chat</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <section id="loginView" class="login-screen">
+      <div class="login-card">
+        <div class="login-hero">
+          <div class="login-badge">Family Chat</div>
+          <h1 id="titleText">Family Chat</h1>
+          <p id="loginLead">Private family messaging with encrypted media.</p>
+        </div>
+
+        <div class="login-panel">
+          <div class="panel-row">
+            <label class="field">
+              <span id="usernameLabel">Username</span>
+              <input id="username" autocomplete="username" />
+            </label>
+            <label class="field">
+              <span id="passwordLabel">Password</span>
+              <input id="password" type="password" autocomplete="current-password" />
+            </label>
+          </div>
+
+          <div class="panel-row">
+            <button id="loginBtn" class="primary-btn">Login</button>
+            <label class="field compact">
+              <span id="languageLabel">Language</span>
+              <select id="langSelect">
+                <option value="en">English</option>
+                <option value="zh">中文</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="login-foot">
+            <small id="loginHint">Use alice / bob / carol</small>
+            <div class="status-pill">
+              <span id="statusDot" class="dot"></span>
+              <span id="statusText">Disconnected</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="chatView" class="chat-screen" style="display:none;">
+      <aside class="chat-sidebar">
+        <div class="sidebar-header">
+          <div>
+            <div class="sidebar-title" id="sidebarTitle">Family Chat</div>
+            <small id="meText"></small>
+          </div>
+          <div class="status-pill compact">
+            <span id="chatStatusDot" class="dot"></span>
+            <span id="chatStatusText">Disconnected</span>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="section-label" id="securityTitle">Security</div>
+          <label class="toggle-row">
+            <input id="e2eeToggle" type="checkbox" checked />
+            <span id="e2eeLabel">End-to-end encryption</span>
+          </label>
+          <label class="field">
+            <span id="roomSecretLabel">Room secret</span>
+            <input id="roomSecret" type="password" />
+          </label>
+          <small id="hintText">Messages and media expire in 3 days.</small>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="section-label" id="actionsTitle">Actions</div>
+          <div class="sidebar-actions">
+            <button id="enablePushBtn">Enable push</button>
+            <button id="changePwBtn">Change password</button>
+            <button id="deleteBtn" class="danger-btn">Delete history</button>
+            <button id="logoutBtn">Logout</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="chat-main">
+        <header class="chat-header">
+          <div>
+            <div class="room-title" id="roomTitle">Family Chat Room</div>
+            <small id="roomSubtitle">Encrypted messages, voice, files and photos</small>
+          </div>
+          <div class="header-tools">
+            <label class="field compact header-lang">
+              <span id="languageLabelChat">Language</span>
+              <select id="langSelectChat">
+                <option value="en">English</option>
+                <option value="zh">中文</option>
+              </select>
+            </label>
+          </div>
+        </header>
+
+        <section class="chat-stage">
+          <div id="chat" class="chatbox"></div>
+          <div id="typingHint" class="typing-hint" style="display:none;"></div>
+        </section>
+
+        <section class="composer-wrap">
+          <div id="replyBar" class="replybar" style="display:none;">
+            <div class="reply-accent"></div>
+            <div class="reply-copy">
+              <div class="reply-label" id="replyingLabel">Replying</div>
+              <div class="replytext" id="replyText"></div>
+            </div>
+            <button id="replyCancelBtn" class="icon-btn" type="button" aria-label="Cancel reply">×</button>
+          </div>
+
+          <div id="mentionMenu" class="mention-menu" style="display:none;"></div>
+
+          <div class="composer">
+            <input id="imageInput" type="file" accept="image/*" hidden />
+            <input id="fileInput" type="file" hidden />
+            <button id="imageBtn" class="icon-btn" type="button" title="Send image">📷</button>
+            <button id="fileBtn" class="icon-btn" type="button" title="Send file">📎</button>
+            <button id="voiceBtn" class="icon-btn" type="button" title="Record voice">🎙</button>
+            <div class="composer-field">
+              <textarea id="message" rows="1" placeholder="Type a message"></textarea>
+            </div>
+            <button id="sendBtn" class="send-btn" type="button">Send</button>
+          </div>
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
